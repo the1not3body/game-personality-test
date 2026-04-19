@@ -24,13 +24,16 @@
         .header p { color: var(--text-light); font-size: 0.95em; }
         .progress { text-align: center; color: var(--text-light); margin-bottom: 24px; font-size: 14px; 
             display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .progress-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); transition: all 0.3s; }
+        .progress-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); transition: all 0.3s; cursor: pointer; }
         .progress-dot.active { background: var(--primary); transform: scale(1.3); }
         .progress-dot.done { background: var(--primary); }
+        .progress-dot.can-click { cursor: pointer; }
+        .progress-dot.can-click:hover { transform: scale(1.5); }
         
         .card { background: var(--card); border-radius: 20px; padding: 28px; box-shadow: 0 4px 24px rgba(0,0,0,0.04); border: 1px solid var(--border); }
-        .q-num { display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--primary), #8b5cf6); color: #fff; width: 28px; height: 28px; border-radius: 8px; font-weight: 700; font-size: 14px; margin-bottom: 16px; }
-        .q-text { font-size: 1.15em; font-weight: 600; margin-bottom: 20px; line-height: 1.5; }
+        .q-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+        .q-num { display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--primary), #8b5cf6); color: #fff; width: 28px; height: 28px; border-radius: 8px; font-weight: 700; font-size: 14px; }
+        .q-text { font-size: 1.15em; font-weight: 600; line-height: 1.5; }
         
         .opt { background: var(--bg); border: 2px solid var(--border); border-radius: 14px; padding: 16px 18px; margin-bottom: 12px; cursor: pointer; transition: all 0.2s cubic-bezier(0.4,0,0.2,1); display: flex; align-items: center; }
         .opt:hover { border-color: var(--primary); background: rgba(99,102,241,0.04); transform: translateX(4px); }
@@ -41,11 +44,14 @@
         }
         .opt.selected span:first-child { background: var(--primary); color: #fff; }
         
-        .btn { display: block; width: 100%; padding: 18px; background: linear-gradient(135deg, var(--primary), #8b5cf6); border: none; border-radius: 14px; 
-            color: #fff; font-size: 1.1em; font-weight: 700; cursor: pointer; margin-top: 24px; 
+        .btn-wrap { display: flex; gap: 12px; margin-top: 24px; }
+        .btn { flex: 1; padding: 18px; background: linear-gradient(135deg, var(--primary), #8b5cf6); border: none; border-radius: 14px; 
+            color: #fff; font-size: 1.1em; font-weight: 700; cursor: pointer; 
             box-shadow: 0 4px 16px rgba(99,102,241,0.3); transition: all 0.3s; }
         .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(99,102,241,0.4); }
-        .btn:disabled { background: var(--border); color: var(--text-light); cursor: not-allowed; box-shadow: none; transform: none; }
+        .btn:disabled { cursor: not-allowed; }
+        .btn-secondary { background: var(--card); border: 2px solid var(--border); color: var(--text); }
+        .btn-secondary:hover { border-color: var(--primary); background: var(--bg); }
         
         .result { display: none; text-align: center; padding: 20px 0; }
         .result.show { display: block; animation: slideUp 0.6s cubic-bezier(0.4,0,0.2,1); }
@@ -79,8 +85,7 @@
         .stat-track { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
         .stat-fill { height: 100%; border-radius: 4px; transition: width 1s cubic-bezier(0.4,0,0.2,1); }
         
-        .restart { background: var(--card); border: 2px solid var(--primary); margin-top: 12px; }
-        .restart:hover { background: linear-gradient(135deg, var(--primary), #8b5cf6); }
+        .restart { width: 100%; background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none; margin-top: 12px; color: #fff; box-shadow: 0 4px 16px rgba(99,102,241,0.3); }
     </style>
 </head>
 <body>
@@ -92,11 +97,17 @@
         <div class="progress" id="prog"></div>
         <div id="quiz">
             <div class="card">
-                <div class="q-num" id="qNum">1</div>
+                <div class="q-header">
+                    <div class="q-num" id="qNum">1</div>
+                    <div class="q-num" id="clearBtn" style="background:#94a3b8;cursor:pointer;font-size:12px;width:auto;padding:0 10px;" onclick="clearCache()">🗑️</div>
+                </div>
                 <div class="q-text" id="qText">加载中...</div>
                 <div id="opts"></div>
             </div>
-            <button class="btn" id="nextBtn" disabled>下一题</button>
+            <div class="btn-wrap">
+                <button class="btn btn-secondary" id="prevBtn" onclick="prev()">上一题</button>
+                <button class="btn" id="nextBtn" disabled>下一题</button>
+            </div>
         </div>
         <div class="result" id="result">
             <div class="avatar-wrap">
@@ -117,6 +128,7 @@
         </div>
     </div>
     <script>
+        const CACHE_KEY = 'game_personality_answers';
         const qs = [
             { t: "开局选人时你在干嘛？", o: ["看看阵容，选合适的英雄，还得是我靠谱","锁能C的","我想锁什么英雄就锁什么英雄","看队友成分决定这把摆不摆","心里已然开骂，这把无了"] },
             { t: "队友犯错你第一反应？", o: ["我刚不是说了吗，你没听","算了算了算了，我来C","哈哈哈哈哈哈哈哈哈哈哈","你这波这么上逻辑上不太对","？？？？你在干嘛？？？？"] },
@@ -141,17 +153,58 @@
         let i = 0, ans = [];
         const letters = ['A','B','C','D','E'];
 
+        function loadCache() {
+            try {
+                const saved = localStorage.getItem(CACHE_KEY);
+                if (saved) {
+                    ans = JSON.parse(saved);
+                    if (ans.length > 0 && ans[0] !== undefined) {
+                        let lastIdx = -1;
+                        for(let j=0;j<ans.length;j++) {
+                            if(ans[j] !== undefined) lastIdx = j;
+                        }
+                        if(lastIdx >= 0) i = lastIdx;
+                    }
+                }
+            } catch(e) { }
+        }
+        function saveCache() {
+            try {
+                localStorage.setItem(CACHE_KEY, JSON.stringify(ans));
+            } catch(e) { }
+        }
+        function clearCache() {
+            if(confirm('确定要清空所有选择吗？')) {
+                localStorage.removeItem(CACHE_KEY);
+                location.reload();
+            }
+        }
+        function jumpTo(idx) {
+            if(idx >= 0 && idx < qs.length) {
+                i = idx;
+                render();
+            }
+        }
+        function prev() {
+            if(i > 0) {
+                i--;
+                render();
+            }
+        }
+
         function render() {
             const q = qs[i];
             document.getElementById('qNum').textContent = i + 1;
             document.getElementById('qText').textContent = q.t;
-            
+            document.getElementById('prevBtn').style.display = i > 0 ? 'block' : 'none';
+
             let dots = '';
             for(let j=0;j<10;j++) {
                 let cls = 'progress-dot';
-                if(j < i) cls += ' done';
-                else if(j === i) cls += ' active';
-                dots += `<div class="${cls}"></div>`;
+                if(ans[j] !== undefined) cls += ' done';
+                if(j === i) cls += ' active';
+                if(ans[j] !== undefined && j !== i) cls += ' can-click';
+                dots += `<div class="${cls}" onclick="jumpTo(${j})"></div>`;
             }
             document.getElementById('prog').innerHTML = dots;
             
@@ -160,22 +213,42 @@
             q.o.forEach((text, idx) => {
                 const el = document.createElement('div');
                 el.className = 'opt';
+                if(ans[i] === idx) el.classList.add('selected');
                 el.innerHTML = `<span>${letters[idx]}</span><span>${text}</span>`;
                 el.onclick = () => select(el, idx);
                 container.appendChild(el);
             });
-            document.getElementById('nextBtn').disabled = true;
-            document.getElementById('nextBtn').textContent = i === qs.length - 1 ? '查看结果' : '下一题';
+            const hasSelected = ans[i] !== undefined;
+            const nextBtn = document.getElementById('nextBtn');
+            nextBtn.disabled = !hasSelected;
+            if (hasSelected) {
+                nextBtn.style.background = 'linear-gradient(135deg, #6366f1, #8b5cf6)';
+                nextBtn.style.color = '#fff';
+                nextBtn.style.border = 'none';
+                nextBtn.style.boxShadow = '0 4px 16px rgba(99,102,241,0.3)';
+            } else {
+                nextBtn.style.background = '#fff';
+                nextBtn.style.color = '#94a3b8';
+                nextBtn.style.border = '2px solid #e2e8f0';
+                nextBtn.style.boxShadow = 'none';
+            }
+            nextBtn.textContent = i === qs.length - 1 ? '查看结果' : '下一题';
         }
         function select(el, idx) {
             document.querySelectorAll('.opt').forEach(o => o.classList.remove('selected'));
             el.classList.add('selected');
             ans[i] = idx;
-            document.getElementById('nextBtn').disabled = false;
+            saveCache();
+            const nextBtn = document.getElementById('nextBtn');
+            nextBtn.disabled = false;
+            nextBtn.style.background = 'linear-gradient(135deg, #6366f1, #8b5cf6)';
+            nextBtn.style.color = '#fff';
+            nextBtn.style.border = 'none';
+            nextBtn.style.boxShadow = '0 4px 16px rgba(99,102,241,0.3)';
         }
         function show() {
             const cnt = [0,0,0,0,0];
-            ans.forEach(a => cnt[a]++);
+            ans.forEach(a => { if(a !== undefined) cnt[a]++; });
             let max = 0;
             for(let j=1;j<5;j++) if(cnt[j]>cnt[max]) max=j;
             const r = types[max];
@@ -196,7 +269,8 @@
             const statBar = document.getElementById('statBar');
             statBar.innerHTML = '';
             for(let k=0;k<5;k++) {
-                const pct = (cnt[k]/10)*100;
+                const totalAnswered = ans.filter(a => a !== undefined).length || 1;
+                const pct = (cnt[k]/totalAnswered)*100;
                 statBar.innerHTML += `
                     <div class="stat-row">
                         <div class="stat-label"><span>${typeNames[k]}</span><span>${cnt[k]}题</span></div>
@@ -209,6 +283,10 @@
             }, 200);
         }
         document.getElementById('nextBtn').onclick = () => { i++; i < qs.length ? render() : show(); };
+        
+        localStorage.removeItem(CACHE_KEY);
+        i = 0;
+        ans = [];
         render();
     </script>
 </body>
