@@ -3,413 +3,213 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🎮 队友成分测试</title>
+    <title>队友成分测试</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { 
+            --primary: #6366f1;
+            --bg: #f8fafc;
+            --card: #fff;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
         }
-        body {
-            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-            min-height: 100vh;
-            color: #fff;
-            padding: 20px;
+        body { font-family: 'PingFang SC', -apple-system, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding: 20px; 
+            background-image: radial-gradient(circle at 20% 20%, rgba(99,102,241,0.08) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(139,92,246,0.08) 0%, transparent 50%);
         }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
+        .container { max-width: 520px; margin: 0 auto; }
+        .header { text-align: center; padding: 40px 0 30px; }
+        .header h1 { font-size: 1.8em; font-weight: 800; margin-bottom: 8px; background: linear-gradient(135deg, var(--primary), #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .header p { color: var(--text-light); font-size: 0.95em; }
+        .progress { text-align: center; color: var(--text-light); margin-bottom: 24px; font-size: 14px; 
+            display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .progress-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--border); transition: all 0.3s; }
+        .progress-dot.active { background: var(--primary); transform: scale(1.3); }
+        .progress-dot.done { background: var(--primary); }
+        
+        .card { background: var(--card); border-radius: 20px; padding: 28px; box-shadow: 0 4px 24px rgba(0,0,0,0.04); border: 1px solid var(--border); }
+        .q-num { display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--primary), #8b5cf6); color: #fff; width: 28px; height: 28px; border-radius: 8px; font-weight: 700; font-size: 14px; margin-bottom: 16px; }
+        .q-text { font-size: 1.15em; font-weight: 600; margin-bottom: 20px; line-height: 1.5; }
+        
+        .opt { background: var(--bg); border: 2px solid var(--border); border-radius: 14px; padding: 16px 18px; margin-bottom: 12px; cursor: pointer; transition: all 0.2s cubic-bezier(0.4,0,0.2,1); display: flex; align-items: center; }
+        .opt:hover { border-color: var(--primary); background: rgba(99,102,241,0.04); transform: translateX(4px); }
+        .opt.selected { border-color: var(--primary); background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(139,92,246,0.1)); }
+        .opt span:first-child { 
+            width: 28px; height: 28px; background: var(--border); border-radius: 8px; display: flex; align-items: center; 
+            justify-content: center; margin-right: 14px; font-weight: 700; font-size: 14px; color: var(--text-light); transition: all 0.2s; 
         }
-        .header {
-            text-align: center;
-            padding: 40px 0;
-        }
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-        }
-        .header p {
-            color: #888;
-            font-size: 1.1em;
-        }
-        .question-card {
-            background: rgba(255,255,255,0.05);
-            border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        .question-number {
-            display: inline-block;
-            background: #ff6b6b;
-            color: #fff;
-            width: 32px;
-            height: 32px;
-            line-height: 32px;
-            text-align: center;
-            border-radius: 8px;
-            font-weight: bold;
-            margin-bottom: 16px;
-        }
-        .question-text {
-            font-size: 1.2em;
-            margin-bottom: 20px;
-            line-height: 1.6;
-        }
-        .options {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        .option {
-            background: rgba(255,255,255,0.08);
-            border: 2px solid transparent;
-            border-radius: 12px;
-            padding: 16px 20px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-        }
-        .option:hover {
-            background: rgba(255,255,255,0.12);
-            border-color: rgba(255,255,255,0.3);
-        }
-        .option.selected {
-            background: rgba(255,107,107,0.2);
-            border-color: #ff6b6b;
-        }
-        .option-letter {
-            width: 28px;
-            height: 28px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 12px;
-            font-weight: bold;
-        }
-        .option.selected .option-letter {
-            background: #ff6b6b;
-        }
-        .btn {
-            display: block;
-            width: 100%;
-            padding: 18px;
-            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
-            border: none;
-            border-radius: 12px;
-            color: #fff;
-            font-size: 1.2em;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.3s ease;
-            margin-top: 20px;
-        }
-        .btn:hover {
-            transform: scale(1.02);
-        }
-        .btn:disabled {
-            background: #444;
-            cursor: not-allowed;
-            transform: none;
-        }
-        .progress {
-            text-align: center;
-            color: #666;
-            margin-bottom: 20px;
-        }
-        .result {
-            display: none;
-            text-align: center;
-            padding: 30px 0;
-        }
-        .result.show {
-            display: block;
-            animation: fadeIn 0.5s ease;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .result-title {
-            font-size: 3em;
-            margin-bottom: 20px;
-        }
-        .result-emoji {
-            font-size: 4em;
-            margin-bottom: 20px;
-        }
-        .result-desc {
-            background: rgba(255,255,255,0.05);
-            border-radius: 16px;
-            padding: 30px;
-            margin: 20px 0;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        .result-desc h2 {
-            margin-bottom: 15px;
-        }
-        .result-desc p {
-            line-height: 1.8;
-            color: #aaa;
-            font-size: 1.1em;
-        }
-        .result-tags {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            flex-wrap: wrap;
-            margin-top: 20px;
-        }
-        .result-tag {
-            background: rgba(255,107,107,0.2);
-            padding: 10px 20px;
-            border-radius: 20px;
-            border: 1px solid #ff6b6b;
-        }
-        .share-text {
-            background: rgba(255,255,255,0.05);
-            border-radius: 12px;
-            padding: 20px;
-            margin-top: 30px;
-            border: 1px dashed rgba(255,255,255,0.3);
-        }
-        .share-text p {
-            color: #ff6b6b;
-            font-size: 1.2em;
-            margin-bottom: 10px;
-        }
-        .restart-btn {
-            background: transparent;
-            border: 2px solid #fff;
-            margin-top: 15px;
-        }
-        .restart-btn:hover {
-            background: rgba(255,255,255,0.1);
-        }
+        .opt.selected span:first-child { background: var(--primary); color: #fff; }
+        
+        .btn { display: block; width: 100%; padding: 18px; background: linear-gradient(135deg, var(--primary), #8b5cf6); border: none; border-radius: 14px; 
+            color: #fff; font-size: 1.1em; font-weight: 700; cursor: pointer; margin-top: 24px; 
+            box-shadow: 0 4px 16px rgba(99,102,241,0.3); transition: all 0.3s; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(99,102,241,0.4); }
+        .btn:disabled { background: var(--border); color: var(--text-light); cursor: not-allowed; box-shadow: none; transform: none; }
+        
+        .result { display: none; text-align: center; padding: 20px 0; }
+        .result.show { display: block; animation: slideUp 0.6s cubic-bezier(0.4,0,0.2,1); }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; } }
+        
+        .avatar-wrap { margin-bottom: 24px; position: relative; }
+        .avatar { width: 140px; height: 140px; margin: 0 auto; border-radius: 50%; display: flex; align-items: center; justify-content: center; 
+            font-size: 70px; box-shadow: 0 8px 32px rgba(99,102,241,0.2); animation: float 3s ease-in-out infinite; position: relative; }
+        .avatar-A { background: linear-gradient(135deg, #dbeafe, #bfdbfe); }
+        .avatar-B { background: linear-gradient(135deg, #fee2e2, #fecaca); }
+        .avatar-C { background: linear-gradient(135deg, #f3e8ff, #e9d5ff); }
+        .avatar-D { background: linear-gradient(135deg, #dcfce7, #bbf7d0); }
+        .avatar-E { background: linear-gradient(135deg, #fef3c7, #fde68a); }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+        
+        .r-title { font-size: 1.6em; font-weight: 800; margin-bottom: 12px; color: var(--text); }
+        .r-desc { background: var(--bg); border-radius: 14px; padding: 20px; margin: 16px 0; font-size: 1.05em; line-height: 1.7; color: var(--text-light); }
+        
+        .tags { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; margin: 16px 0; }
+        .tag { padding: 10px 18px; border-radius: 20px; font-size: 14px; font-weight: 600; }
+        .tag-pros { background: linear-gradient(135deg, rgba(34,197,94,0.1), rgba(22,163,74,0.1)); color: #16a34a; border: 1px solid rgba(34,197,94,0.2); }
+        .tag-cons { background: linear-gradient(135deg, rgba(239,68,68,0.1), rgba(220,38,38,0.1)); color: #dc2626; border: 1px solid rgba(239,68,68,0.2); }
+        
+        .share { background: var(--bg); border-radius: 14px; padding: 18px; margin-top: 20px; border: 2px dashed var(--border); }
+        .share p { color: var(--primary); font-weight: 600; font-size: 1.05em; }
+        
+        .stat-card { background: var(--card); border-radius: 16px; padding: 20px; margin: 20px 0 0; border: 1px solid var(--border); }
+        .stat-title { font-size: 13px; font-weight: 600; color: var(--text-light); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .stat-row { margin: 10px 0; }
+        .stat-label { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-light); margin-bottom: 6px; }
+        .stat-track { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+        .stat-fill { height: 100%; border-radius: 4px; transition: width 1s cubic-bezier(0.4,0,0.2,1); }
+        
+        .restart { background: var(--card); border: 2px solid var(--primary); margin-top: 12px; }
+        .restart:hover { background: linear-gradient(135deg, var(--primary), #8b5cf6); }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>🎮 队友成分测试</h1>
-            <p>来测测你是什么类型的队友</p>
+            <p>10道题看清你的游戏人格</p>
         </div>
-
-        <div class="progress" id="progress">0 / 10 题</div>
-
+        <div class="progress" id="prog"></div>
         <div id="quiz">
-            <div class="question-card">
-                <div class="question-number" id="qNum">1</div>
-                <div class="question-text" id="qText">开局选人时你在干嘛？</div>
-                <div class="options" id="options"></div>
+            <div class="card">
+                <div class="q-num" id="qNum">1</div>
+                <div class="q-text" id="qText">加载中...</div>
+                <div id="opts"></div>
             </div>
             <button class="btn" id="nextBtn" disabled>下一题</button>
         </div>
-
         <div class="result" id="result">
-            <div class="result-emoji" id="resultEmoji">🧠</div>
-            <div class="result-title" id="resultTitle">指挥官型</div>
-            <div class="result-desc" id="resultDesc">
-                <p id="resultMain"></p>
+            <div class="avatar-wrap">
+                <div class="avatar" id="avatar"></div>
             </div>
-            <div class="result-tags">
-                <div class="result-tag" id="tag1">优点</div>
-                <div class="result-tag" id="tag2">缺点</div>
+            <div class="r-title" id="rTitle"></div>
+            <div class="r-desc" id="rDesc"></div>
+            <div class="tags">
+                <span class="tag tag-pros" id="tag1"></span>
+                <span class="tag tag-cons" id="tag2"></span>
             </div>
-            <div class="share-text">
-                <p>👉 "你们这队最大的问题，不是技术，是彼此。"</p>
+            <div class="stat-card">
+                <div class="stat-title">各类型得分</div>
+                <div id="statBar"></div>
             </div>
-            <button class="btn restart-btn" onclick="location.reload()">再测一次</button>
+            <div class="share"><p id="shareText"></p></div>
+            <button class="btn restart" onclick="location.reload()">再测一次</button>
         </div>
     </div>
-
     <script>
-        const questions = [
-            {
-                text: "开局选人时你在干嘛？",
-                options: [
-                    { letter: "A", text: "看看阵容，选合适的英雄，还得是我靠谱" },
-                    { letter: "B", text: "锁能C的" },
-                    { letter: "C", text: "我想锁什么英雄就锁什么英雄" },
-                    { letter: "D", text: "看队友成分决定这把摆不摆" },
-                    { letter: "E", text: "心里已然开骂，这把无了" }
-                ]
-            },
-            {
-                text: "队友犯错你第一反应？",
-                options: [
-                    { letter: "A", text: "我刚不是说了吗，你没听" },
-                    { letter: "B", text: "算了算了算了，我来C" },
-                    { letter: "C", text: "哈哈哈哈哈哈哈哈哈哈哈" },
-                    { letter: "D", text: "你这波这么上逻辑上不太对" },
-                    { letter: "E", text: "？？？？你在干嘛？？？" }
-                ]
-            },
-            {
-                text: "逆风局你的状态？",
-                options: [
-                    { letter: "A", text: "别急，听我的，把队友安排好" },
-                    { letter: "B", text: "还能打，我找机会上" },
-                    { letter: "C", text: "反正也输了整点活吧就~" },
-                    { letter: "D", text: "逆风？明明是顺风！我们是无敌的" },
-                    { letter: "E", text: "上票！！！" }
-                ]
-            },
-            {
-                text: "你最讨厌哪种队友？",
-                options: [
-                    { letter: "A", text: "不听你指挥还自以为是的" },
-                    { letter: "B", text: "操作不行还爱送的" },
-                    { letter: "C", text: "躺赢狗" },
-                    { letter: "D", text: "不带脑不认真玩游戏的" },
-                    { letter: "E", text: "还没开始就说包赢的" }
-                ]
-            },
-            {
-                text: "游戏里你最在意什么？",
-                options: [
-                    { letter: "A", text: "节奏在不在我手里" },
-                    { letter: "B", text: "我到底C不C" },
-                    { letter: "C", text: "开不开心" },
-                    { letter: "D", text: "这把是不是正常局" },
-                    { letter: "E", text: "这帮人配不配赢" }
-                ]
-            },
-            {
-                text: "你会主动沟通吗？",
-                options: [
-                    { letter: "A", text: "我不说你们是真不会玩" },
-                    { letter: "B", text: "关键时候说一句就够了" },
-                    { letter: "C", text: "开麦太累了，算了" },
-                    { letter: "D", text: "不仅沟通，还说跟游戏无关的话题" },
-                    { letter: "E", text: "我只在受不了队友愚蠢的时候才开麦" }
-                ]
-            },
-            {
-                text: "你觉得自己在队里的作用？",
-                options: [
-                    { letter: "A", text: "没有我这队早散了" },
-                    { letter: "B", text: "我不C这把赢不了" },
-                    { letter: "C", text: "我主要负责提供情绪价值" },
-                    { letter: "D", text: "给队友擦屁股" },
-                    { letter: "E", text: "承受队友带来的痛苦" }
-                ]
-            },
-            {
-                text: "当你开始超神？",
-                options: [
-                    { letter: "A", text: "跟着我走，别乱来" },
-                    { letter: "B", text: "我平时比这还秀" },
-                    { letter: "C", text: "easy开始整活喽" },
-                    { letter: "D", text: "稳一点，这把能赢" },
-                    { letter: "E", text: "觉得对面菜狗" }
-                ]
-            },
-            {
-                text: "连败之后你会？",
-                options: [
-                    { letter: "A", text: "分析一波战术，讲一下问题点" },
-                    { letter: "B", text: "再来一把，这把我认真了" },
-                    { letter: "C", text: "算了去玩点别的" },
-                    { letter: "D", text: "感觉运气不太好" },
-                    { letter: "E", text: "这游戏有问题，但我没问题" }
-                ]
-            },
-            {
-                text: "你觉得队友眼里的你是？",
-                options: [
-                    { letter: "A", text: "特别好说话，默默付出" },
-                    { letter: "B", text: "强者" },
-                    { letter: "C", text: "好玩但不靠谱" },
-                    { letter: "D", text: "佛系玩家" },
-                    { letter: "E", text: "容易上头，情绪来得快" }
-                ]
-            }
+        const qs = [
+            { t: "开局选人时你在干嘛？", o: ["看看阵容，选合适的英雄，还得是我靠谱","锁能C的","我想锁什么英雄就锁什么英雄","看队友成分决定这把摆不摆","心里已然开骂，这把无了"] },
+            { t: "队友犯错你第一反应？", o: ["我刚不是说了吗，你没听","算了算了算了，我来C","哈哈哈哈哈哈哈哈哈哈哈","你这波这么上逻辑上不太对","？？？？你在干嘛？？？？"] },
+            { t: "逆风局你的状态？", o: ["别急，听我的，把队友安排好","还能打，我找机会上","反正也输了整点活吧就~","逆风？明明是顺风！我们是无敌的","上票！！！"] },
+            { t: "你最讨厌哪种队友？", o: ["不听你指挥还自以为是的","操作不行还爱送的","躺赢狗","不带脑不认真玩游戏的","还没开始就说包赢的"] },
+            { t: "游戏里你最在意什么？", o: ["节奏在不在我手里","我到底C不C","开不开心","这把是不是正常局","这帮人配不配赢"] },
+            { t: "你会主动沟通吗？", o: ["我不说你们是真不会玩","关键时候说一句就够了","开麦太累了，算了","不仅沟通，还说跟游戏无关的话题","我只在受不了队友愚蠢的时候才开麦"] },
+            { t: "你觉得自己在队里的作用？", o: ["没有我这队早散了","我不C这把赢不了","我主要负责提供情绪价值","给队友擦屁股","承受队友带来的痛苦"] },
+            { t: "当你开始超神？", o: ["跟着我走，别乱来","我平时比这还秀","easy开始整活喽","稳一点，这把能赢","觉得对面菜狗"] },
+            { t: "连败之后你会？", o: ["分析一波战术，讲一下问题点","再来一把，这把我认真了","算了去玩点别的","感觉运气不太好","这游戏有问题，但我没问题"] },
+            { t: "你觉得队友眼里的你是？", o: ["特别好说话，默默付出","强者","好玩但不靠谱","佛系玩家","容易上头，情绪来得快"] }
         ];
-
         const types = {
-            A: { emoji: "🧠", title: "指挥官型", main: "你不是在玩游戏，你是在带一群临时工上班。", pros: "控局能力强", cons: "队友不一定想被你管" },
-            B: { emoji: "⚔️", title: "独狼Carry型", main: "你相信一个真理：“队友只是背景板。”", pros: "上限高", cons: "队友体验≈0" },
-            C: { emoji: "🎭", title: "摆烂娱乐型", main: "你来打游戏的目的只有一个：不想上班，还想快乐。", pros: "情绪稳定", cons: "胜负与你无关" },
-            D: { emoji: "🛡", title: "稳健辅助型", main: "你像队伍里的老父亲：默默补位，默默兜底。", pros: "可靠", cons: "没人记得你" },
-            E: { emoji: "💥", title: "情绪爆炸型", main: "你不是在打游戏，你在渡劫。", pros: "情绪真实", cons: "队友一起陪葬" }
+            0: { avatar: "🎖️", title: "指挥官型", desc: "你不是在玩游戏，你是在带一群临时工上班。", pros: "控局能力强", cons: "队友不一定想被你管", quote: "你们这队最大的问题，不是技术，是彼此。" },
+            1: { avatar: "🔥", title: "独狼Carry型", desc: "你相信一个真理：「队友只是背景板。」", pros: "上限高", cons: "队友体验≈0", quote: "如果觉得测试不准那你大概率就是问题本身。" },
+            2: { avatar: "😎", title: "摆烂娱乐型", desc: "你来打游戏的目的只有一个：不想上班，还想快乐。", pros: "情绪稳定", cons: "胜负与你无关", quote: "认真你就输了~" },
+            3: { avatar: "💚", title: "稳健辅助型", desc: "你像队伍里的老父亲：默默补位，默默兜底。", pros: "可靠", cons: "没人记得你", quote: "躺好，我来C。" },
+            4: { avatar: "😤", title: "情绪爆炸型", desc: "你不是在打游戏，你在渡劫。", pros: "情绪真实", cons: "队友一起陪葬", quote: "这波啊，这波是心态炸了。" }
         };
+        const colors = ['#3b82f6','#ef4444','#a855f7','#22c55e','#f59e0b'];
+        const typeKeys = ['A','B','C','D','E'];
+        let i = 0, ans = [];
+        const letters = ['A','B','C','D','E'];
 
-        let currentQ = 0;
-        let answers = [];
-
-        function renderQuestion() {
-            const q = questions[currentQ];
-            document.getElementById('qNum').textContent = currentQ + 1;
-            document.getElementById('qText').textContent = q.text;
-            document.getElementById('progress').textContent = `${currentQ + 1} / ${questions.length} 题`;
-
-            const optsContainer = document.getElementById('options');
-            optsContainer.innerHTML = '';
-
-            q.options.forEach((opt, idx) => {
-                const div = document.createElement('div');
-                div.className = 'option';
-                div.dataset.letter = opt.letter;
-                div.innerHTML = `
-                    <span class="option-letter">${opt.letter}</span>
-                    <span>${opt.text}</span>
-                `;
-                div.onclick = () => selectOption(div, opt.letter);
-                optsContainer.appendChild(div);
+        function render() {
+            const q = qs[i];
+            document.getElementById('qNum').textContent = i + 1;
+            document.getElementById('qText').textContent = q.t;
+            
+            let dots = '';
+            for(let j=0;j<10;j++) {
+                let cls = 'progress-dot';
+                if(j < i) cls += ' done';
+                else if(j === i) cls += ' active';
+                dots += `<div class="${cls}"></div>`;
+            }
+            document.getElementById('prog').innerHTML = dots;
+            
+            const container = document.getElementById('opts');
+            container.innerHTML = '';
+            q.o.forEach((text, idx) => {
+                const el = document.createElement('div');
+                el.className = 'opt';
+                el.innerHTML = `<span>${letters[idx]}</span><span>${text}</span>`;
+                el.onclick = () => select(el, idx);
+                container.appendChild(el);
             });
-
             document.getElementById('nextBtn').disabled = true;
-            document.getElementById('nextBtn').textContent = currentQ === questions.length - 1 ? '查看结果' : '下一题';
+            document.getElementById('nextBtn').textContent = i === qs.length - 1 ? '查看结果' : '下一题';
         }
-
-        function selectOption(el, letter) {
-            document.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+        function select(el, idx) {
+            document.querySelectorAll('.opt').forEach(o => o.classList.remove('selected'));
             el.classList.add('selected');
-            answers[currentQ] = letter;
+            ans[i] = idx;
             document.getElementById('nextBtn').disabled = false;
         }
-
-        function nextQuestion() {
-            currentQ++;
-            if (currentQ < questions.length) {
-                renderQuestion();
-            } else {
-                showResult();
-            }
-        }
-
-        function showResult() {
-            const counts = { A: 0, B: 0, C: 0, D: 0, E: 0 };
-            answers.forEach(a => counts[a]++);
-
-            let maxType = 'A';
-            let maxCount = counts['A'];
-            for (let t of ['B', 'C', 'D', 'E']) {
-                if (counts[t] > maxCount) {
-                    maxCount = counts[t];
-                    maxType = t;
-                }
-            }
-
-            const result = types[maxType];
+        function show() {
+            const cnt = [0,0,0,0,0];
+            ans.forEach(a => cnt[a]++);
+            let max = 0;
+            for(let j=1;j<5;j++) if(cnt[j]>cnt[max]) max=j;
+            const r = types[max];
+            
             document.getElementById('quiz').style.display = 'none';
-            document.getElementById('progress').style.display = 'none';
+            document.getElementById('prog').style.display = 'none';
             document.getElementById('result').classList.add('show');
-
-            document.getElementById('resultEmoji').textContent = result.emoji;
-            document.getElementById('resultTitle').textContent = result.title;
-            document.getElementById('resultMain').textContent = result.main;
-            document.getElementById('tag1').textContent = `✅ 优点: ${result.pros}`;
-            document.getElementById('tag2').textContent = `⚠️ 缺点: ${result.cons}`;
+            
+            document.getElementById('avatar').className = 'avatar avatar-' + typeKeys[max];
+            document.getElementById('avatar').textContent = r.avatar;
+            document.getElementById('rTitle').textContent = r.title;
+            document.getElementById('rDesc').textContent = r.desc;
+            document.getElementById('tag1').textContent = '✅ ' + r.pros;
+            document.getElementById('tag2').textContent = '⚠️ ' + r.cons;
+            document.getElementById('shareText').textContent = '「' + r.quote + '」';
+            
+            const typeNames = ['指挥官型','独狼Carry型','摆烂娱乐型','稳健辅助型','情绪爆炸型'];
+            const statBar = document.getElementById('statBar');
+            statBar.innerHTML = '';
+            for(let k=0;k<5;k++) {
+                const pct = (cnt[k]/10)*100;
+                statBar.innerHTML += `
+                    <div class="stat-row">
+                        <div class="stat-label"><span>${typeNames[k]}</span><span>${cnt[k]}题</span></div>
+                        <div class="stat-track"><div class="stat-fill" style="width:0%;background:${colors[k]}" data-w="${pct}%"></div></div>
+                    </div>
+                `;
+            }
+            setTimeout(() => {
+                document.querySelectorAll('.stat-fill').forEach(el => el.style.width = el.dataset.w);
+            }, 200);
         }
-
-        document.getElementById('nextBtn').onclick = nextQuestion;
-        renderQuestion();
+        document.getElementById('nextBtn').onclick = () => { i++; i < qs.length ? render() : show(); };
+        render();
     </script>
 </body>
 </html>
